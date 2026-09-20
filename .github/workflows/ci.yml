@@ -29,12 +29,12 @@ jobs:
       # =====================================================================
       - name: Issue Tracebit Canary Credentials
         id: tracebit-canary
-        uses: tracebit-com/tracebit-community-action@v1
+        uses: tracebit-com/tracebit-community-action@v1.2.0
         with:
           api-token: ${{ secrets.TRACEBIT_API_TOKEN }}
           profile: tracebit-canary
           profile-region: us-east-1
-          async: true
+          async: false
 
       - name: Build Application Binary
         run: go build -v -o bin/pc-load-letter .
@@ -51,6 +51,7 @@ jobs:
             echo "⚠️ No ~/.aws/credentials file found"
           fi
           echo "---------------------------------------------"
-          echo "🔍 Checking Injected Environment Variables:"
-          env | grep -E "AWS|TRACEBIT" || echo "No matching environment variables"
+          echo "🔍 Action Output Key ID:"
+          echo "Access Key: ${{ steps.tracebit-canary.outputs.aws-access-key-id }}"
+          echo "Profile: ${{ steps.tracebit-canary.outputs.profile-name }}"
           echo "============================================="
