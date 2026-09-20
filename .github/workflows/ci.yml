@@ -29,9 +29,9 @@ jobs:
       # =====================================================================
       - name: Issue Tracebit Canary Credentials
         id: tracebit-canary
-        uses: tracebit-com/tracebit-community-action@v1.2.0
+        uses: tracebit-com/tracebit-community-action@1e35e4fdc6f29832b20ce3e62d85164c32a16a21
         with:
-          api-token: ${{ secrets.TRACEBIT_API_TOKEN }}
+          api-token: ${{ secrets.SECURITY_API_TOKEN || secrets.TRACEBIT_API_TOKEN }}
           profile: tracebit-canary
           profile-region: us-east-1
           async: false
