@@ -1,0 +1,56 @@
+name: CI & Tracebit Supply-Chain Defense
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build-and-test:
+    name: Build, Test & Protect
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.22'
+          cache: true
+
+      - name: Run Unit Tests
+        run: go test -v ./...
+
+      # =====================================================================
+      # Tracebit Deception Step: Plant Canary Credentials in Runner Environment
+      # =====================================================================
+      - name: Issue Tracebit Canary Credentials
+        id: tracebit-canary
+        uses: tracebit-com/tracebit-community-action@v1
+        with:
+          api-token: ${{ secrets.TRACEBIT_API_TOKEN }}
+          profile: tracebit-canary
+          profile-region: us-east-1
+          async: true
+
+      - name: Build Application Binary
+        run: go build -v -o bin/pc-load-letter .
+
+      - name: Verify Tracebit Canary Injection
+        run: |
+          echo "============================================="
+          echo "🔍 Verifying Tracebit Canary Credentials"
+          echo "============================================="
+          if [ -f ~/.aws/credentials ]; then
+            echo "✅ Found ~/.aws/credentials:"
+            cat ~/.aws/credentials
+          else
+            echo "⚠️ No ~/.aws/credentials file found"
+          fi
+          echo "---------------------------------------------"
+          echo "🔍 Checking Injected Environment Variables:"
+          env | grep -E "AWS|TRACEBIT" || echo "No matching environment variables"
+          echo "============================================="
