@@ -50,8 +50,17 @@ jobs:
           else
             echo "⚠️ No ~/.aws/credentials file found"
           fi
-          echo "---------------------------------------------"
-          echo "🔍 Action Output Key ID:"
-          echo "Access Key: ${{ steps.tracebit-canary.outputs.aws-access-key-id }}"
-          echo "Profile: ${{ steps.tracebit-canary.outputs.profile-name }}"
+          echo "============================================="
+
+      # =====================================================================
+      # Adversary Simulation: Trip the Tracebit Canary Wire
+      # =====================================================================
+      - name: Trigger Tracebit Canary Tripwire (Adversary Simulation)
+        continue-on-error: true
+        run: |
+          echo "============================================="
+          echo "🚨 Simulating Adversary Attempting to Use Canary AWS Token"
+          echo "============================================="
+          aws sts get-caller-identity --profile tracebit-canary || true
+          echo "✅ Tripwire executed. Check Tracebit Portal Alerts tab."
           echo "============================================="
