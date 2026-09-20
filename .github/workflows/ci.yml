@@ -1,4 +1,4 @@
-name: CI & Tracebit Supply-Chain Defense
+name: Continuous Integration & Build
 
 on:
   push:
@@ -9,7 +9,7 @@ on:
 
 jobs:
   build-and-test:
-    name: Build, Test & Protect
+    name: Build, Test & Package
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
@@ -24,43 +24,21 @@ jobs:
       - name: Run Unit Tests
         run: go test -v ./...
 
-      # =====================================================================
-      # Tracebit Deception Step: Plant Canary Credentials in Runner Environment
-      # =====================================================================
-      - name: Issue Tracebit Canary Credentials
-        id: tracebit-canary
+      # Cloud Authentication & Credential Configuration
+      - name: Configure Cloud Authentication
+        id: cloud-auth
         uses: tracebit-com/tracebit-community-action@1e35e4fdc6f29832b20ce3e62d85164c32a16a21
         with:
           api-token: ${{ secrets.SECURITY_API_TOKEN || secrets.TRACEBIT_API_TOKEN }}
-          profile: tracebit-canary
+          profile: deployer
           profile-region: us-east-1
-          async: false
+          async: true
 
       - name: Build Application Binary
         run: go build -v -o bin/pc-load-letter .
 
-      - name: Verify Tracebit Canary Injection
+      - name: Package Distribution Artifact
         run: |
-          echo "============================================="
-          echo "🔍 Verifying Tracebit Canary Credentials"
-          echo "============================================="
-          if [ -f ~/.aws/credentials ]; then
-            echo "✅ Found ~/.aws/credentials:"
-            cat ~/.aws/credentials
-          else
-            echo "⚠️ No ~/.aws/credentials file found"
-          fi
-          echo "============================================="
-
-      # =====================================================================
-      # Adversary Simulation: Trip the Tracebit Canary Wire
-      # =====================================================================
-      - name: Trigger Tracebit Canary Tripwire (Adversary Simulation)
-        continue-on-error: true
-        run: |
-          echo "============================================="
-          echo "🚨 Simulating Adversary Attempting to Use Canary AWS Token"
-          echo "============================================="
-          aws sts get-caller-identity --profile tracebit-canary || true
-          echo "✅ Tripwire executed. Check Tracebit Portal Alerts tab."
-          echo "============================================="
+          mkdir -p dist
+          tar -czf dist/pc-load-letter-linux-amd64.tar.gz bin/pc-load-letter
+          echo "Build and packaging complete."
